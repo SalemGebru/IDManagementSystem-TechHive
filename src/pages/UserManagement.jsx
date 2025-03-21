@@ -281,8 +281,11 @@ export default function UserManagement(){
                                                 <div className="overlay"></div>
                                                     <div className="modal-content">
                                                         <p>Delete User?</p>
-                                                        <button onClick={()=>setIsDeleteModalOpen(false)}>Back</button>
-                                                        <button onClick={()=>handleDeleteUser(selectedUser.id)}>Delete</button>
+                                                        <div className="btn-grp">
+                                                            <button onClick={()=>setIsDeleteModalOpen(false)}>Back</button>
+                                                            <button onClick={()=>handleDeleteUser(selectedUser.id)}>Delete</button>
+                                                        </div>
+                                                        
                                                     </div>
                                                 </div>
                                         </td>

@@ -614,6 +614,10 @@ input[type="text"]:focus {
 .modal-content .btn-grp{
   display: flex;
   gap:20px;
+  
+}
+.modal-content .btn-grp button{
+  width: 50%;
 }
 .modal-content button{
   width: 20%;
