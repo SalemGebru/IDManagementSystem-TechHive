@@ -250,7 +250,7 @@ export default function UserManagement(){
 
                                                         <div className="btn-grp">
                                                             <button icon={faClose} onClick={()=>setIsShowModalOpen(false)}>Back</button>
-                                                            <button onClick={handleSaveUser}>Save</button>
+                                                            
                                                         </div>
                                                    </div>
                                                 </div>   
