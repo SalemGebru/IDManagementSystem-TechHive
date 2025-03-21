@@ -603,6 +603,13 @@ input[type="text"]:focus {
   justify-content: center;
   align-items: center;
   gap:20px;
+ 
+}
+.img-section img{
+  width:200px;
+  height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
 }
 .modal-content .btn-grp{
   display: flex;
@@ -618,15 +625,54 @@ input[type="text"]:focus {
 table{
   margin: 50px auto;
   width: 90%;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) ;
+  border-radius: 8px;
+  
+  
+}
+tr{
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2) ;
 }
  th,td{
   table-layout: auto;
+  padding: 5px;
+  
  }
+ #username-col{
+  display: flex;
+  align-items: center;
+ gap:30px;
+ 
+ }
+ table img{
+  width: 50px;
+  height: 50px;
+  margin: 20px 0;
+  border-radius: 50%;
+  margin-left: 20px;
+ 
+ }
+ .circle-icon{
+  color: transparent;
+  border: 1px solid black;
+  border-radius: 50%;
+ } 
+
  .icon-grp{
   padding: 0;
  }
  .icon-grp .table-icon{
   padding-left: 12px;
+ }
+ .pagination{
+  
+  width:300px;
+  
+ }
+ .pagination button{
+  width:15%;
+  background-color: #458ec0;
+  
  }
  
 

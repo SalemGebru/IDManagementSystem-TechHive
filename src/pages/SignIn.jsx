@@ -9,6 +9,7 @@ import logo from "../images/logo.png";
 
 export default function Signin(){
     const logged=useSelector((state)=>state.user.logged);
+    const role=useSelector((state)=>state.user.role);
     const dispatch=useDispatch();
     const navigate=useNavigate();
 
@@ -17,16 +18,25 @@ export default function Signin(){
         password:''
     });
 
-    useEffect(()=>{
-        if(logged){
-            navigate('/employee/dashboard');
-        }
-    },[logged]);
+    useEffect(() => {
+        if (logged && role) {  
+            const lowerRole = String(role).toLowerCase();
+            console.log("User Role:", role);
 
-    const handleSignin=(e)=>{
-       e.preventDefault();
-        dispatch(signin(formData));
-    }
+            if (lowerRole === "employee") {
+                navigate("/employee/dashboard");
+            } else if (lowerRole === "it assistant") {
+                navigate("/usermanagement");
+            } else if (lowerRole === "hr") {
+                
+            }
+        }
+    }, [logged, role, navigate]); 
+
+    const handleSignin = (e) => {
+        e.preventDefault();
+        dispatch(signin(formData)); 
+    };
 
     return(
         <div id="sign-in">

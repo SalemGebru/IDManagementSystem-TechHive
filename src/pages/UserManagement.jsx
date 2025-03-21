@@ -1,23 +1,22 @@
-//Still in work
-
-import { useEffect, useState } from "react"
+import { useEffect, useState,useRef } from "react"
+import { useReactToPrint } from "react-to-print"
+import { useDispatch, useSelector } from "react-redux"
 
 import Navbar from "../components/Navbar"
 import Sidebar from "../components/Sidebar"
 import Header from "../components/header"
 import Footer from "../components/Footer"
+import Form from "../components/Form"
 
-import { addUser,getUser } from "../features/userSlice"
+import { addUser,getUser,updateUser,deleteUser,deleteBunch } from "../features/userSlice"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faPlus,faClose,faEye,faEdit,faTrash } from "@fortawesome/free-solid-svg-icons"
-import { useDispatch, useSelector } from "react-redux"
+import { faPlus,faClose,faEye,faEdit,faTrash,faCircle,faAngleDoubleLeft,faAngleDoubleRight,faCheck } from "@fortawesome/free-solid-svg-icons"
+
 
 export default function UserManagement(){
     const dispatch=useDispatch();
     const {users}=useSelector((state=>state.user));
-    console.log('State',users);
-    console.log('Users',users);
 
     const [isModalOpen,setIsModalOpen]=useState(false);
     const [isShowModalOpen,setIsShowModalOpen]=useState(false);
@@ -30,18 +29,23 @@ export default function UserManagement(){
         role:'',
         image:''||'No image available'
     });
+    const [selectedUsers,setSelectedUsers]=useState({});
+    const [startSelection,setStartSelection]=useState(false);
     const [formData,setFormData]=useState({
         username:'',
         email:'',
         password:'',
         role:'',
+        status:'',
         image:''||'No image available'
     })
+    const [searchItem,setSearch]=useState('');
     const [confPassword,setConfPassword]=useState('');
     const [userdata,setUserData]=useState([]);
     
+    
 
-      useEffect(() => { 
+    useEffect(() => { 
         dispatch(getUser())
             .then((data) => {
                 const dataitem=data.payload;
@@ -51,6 +55,27 @@ export default function UserManagement(){
                 console.log('Error fetching data', error);
             });
     }, [dispatch,users]);
+
+    const [currentPage,setCurrentPage]=useState(1);
+    const itemsPerPage=5;
+
+    const totalPages=Math.ceil(userdata.length/itemsPerPage);
+
+    const lastItemIndex=currentPage*itemsPerPage;
+    const firstItemIndex=lastItemIndex-itemsPerPage;
+    const currentdata=userdata.slice(firstItemIndex,lastItemIndex);
+
+    const nextPage=()=>{
+        if(currentPage<totalPages){
+            setCurrentPage(currentPage+1);
+        }
+    }
+
+    const prevPage=()=>{
+        if(currentPage>1){
+            setCurrentPage(currentPage-1);
+        }
+    }
 
     const handleOpenModal=()=>{
         setIsModalOpen(true);
@@ -72,23 +97,12 @@ export default function UserManagement(){
 
     }
 
-    const handleChange=(e)=>{
-        setFormData({...formData,[e.target.name]:[e.target.value]});
-        console.log(formData);
-
-    }
-
-    const handleSaveUser = () => {
-        console.log("Password:", formData.password);
-        console.log("Confirm Password:", confPassword);
-    
-        // Check if any field is empty or undefined/null
+    const handleSaveUser = () => {    
         if (!formData.username || !formData.email || !formData.role || !formData.image || !formData.password) {
             alert('There are missing fields');
             return;
         } else {
-            // Check if passwords match
-            if (formData.password.trim() === confPassword.trim()) {
+            if (formData.password== confPassword) {
                 dispatch(addUser(formData));
             } else {
                 alert('Password mismatch');
@@ -96,8 +110,36 @@ export default function UserManagement(){
             }
         }
     }
-    
 
+    const handleUpdateUser=(id)=>{
+        dispatch(updateUser({ Id:id,FormData: formData }))
+    }
+    
+    const handleDeleteUser=(id)=>{
+        dispatch(deleteUser({id:id}))
+    }
+
+    //printing has errors although it essentially prints
+    const contentRef = useRef(null);
+    const reactToPrintFn = useReactToPrint({ contentRef, });
+
+    const handleSelectedRows = (rowId) => {
+        setSelectedUsers((prev) => {
+            const updatedSelection = {
+                ...prev,
+                [rowId]: !prev[rowId], 
+            };
+        const hasSelectedRows = Object.values(updatedSelection).some((isSelected) => isSelected);
+
+        setStartSelection(hasSelectedRows); 
+
+        return updatedSelection;
+    })};
+
+    const handleDeleteBunch=()=>{
+        console.log(selectedUsers);
+        dispatch(deleteBunch(selectedUsers));
+    }
 
     return(
         <div className="page user">
@@ -110,66 +152,42 @@ export default function UserManagement(){
                         <div className="table-header">
                             <h1>Users Table</h1>
                             <button onClick={handleOpenModal}>
-                                <FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>
-                                Add User</button>
-                                <div className={isModalOpen?"modal":"hide"}>
-                                    <div className="overlay"></div>
-                                    <div className="modal-content">
-                                        <div className="img-section">
-                                                <img src={formData.image}/>
-                                                <input type="file" required onClick={imageUploader}></input>
+                                <FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>Add User
+                            </button>
+                            <div className={isModalOpen?"modal":"hide"}>
+                                <div className="overlay"></div>
+                                <div className="modal-content">
+                                    <div className="img-section">
+                                        <img src={formData.image||""}/>
+                                        <input type="file" required onChange={imageUploader}></input>
+                                    </div>
+                                    <div className="user-info">
+                                        <h2>Add User</h2>
+                                        <Form formData={formData} setFormData={setFormData} setConfPassword={setConfPassword} />
+                                        <div className="btn-grp">
+                                            <button icon={faClose} onClick={handleCloseModal}>Back</button>
+                                            <button onClick={handleSaveUser}>Save</button>
                                         </div>
-                                        <div className="user-info">
-                                            <h2>Add User</h2>
-                                            <fieldset>
-                                                <legend>User Details</legend>
-                                                <form>
-                                                    <div className="field-value">
-                                                        <label className="field">Username</label>
-                                                        <input type="text" className="value" name="username" onChange={(e)=>handleChange(e)} required></input>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Email</label>
-                                                    <   input type="email" className="value" name="email" onChange={(e)=>handleChange(e)} required></input>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Role</label>
-                                                        <select name="role" onChange={(e)=>handleChange(e)}>
-                                                            <option value="HR">HR</option>
-                                                            <option value="Employee">Employee</option>
-                                                            <option value="IT Assistant">IT Assistant</option>
-                                                        </select>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value" onChange={(e)=>handleChange(e)}>
-                                                        <label className="field">Password</label>
-                                                        <input type="password" className="value" name="password" required></input>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Confirm Password</label>
-                                                        <input type="password" name="confPassword" className="value" onChange={(e)=>setConfPassword(e.target.value)}></input>
-                                                    </div>
-                                                    
-                                                </form>
-                                                <div className="btn-grp">
-                                                    <button icon={faClose} onClick={handleCloseModal}>Back</button>
-                                                    <button onClick={handleSaveUser}>Save</button>
-                                                </div>
-                                            </fieldset>
-                                            
-                                        </div>
-                                        
                                     </div>
                                 </div>
+                            </div>
                         </div>
                         <div className="table-filter">
-                            <input type="search" placeholder="Search for user"></input>
-                            <div >Filter</div>
+                            <input type="search" placeholder="Search for user" onChange={(e)=>setSearch(e.target.value)}></input>
                         </div>
-                        <table border={1} >
+                        <div className="pagination">
+                            <button onClick={prevPage} disabled={currentPage === 1}>
+                                <FontAwesomeIcon icon={faAngleDoubleLeft}></FontAwesomeIcon>
+                            </button>
+                            <span> Page {currentPage} of {totalPages} </span>
+                            <button onClick={nextPage} disabled={currentPage === totalPages}>
+                            <FontAwesomeIcon icon={faAngleDoubleRight}></FontAwesomeIcon>
+                            </button>
+                        </div>
+                        <div className={startSelection?"extra-btns":"hide"}>
+                            <button onClick={handleDeleteBunch}>Delete bunch</button>
+                        </div>
+                        <table ref={contentRef} >
                             <thead>
                                 <tr>
                                     <th></th>
@@ -177,7 +195,6 @@ export default function UserManagement(){
                                     <th>Username</th>
                                     <th>Email</th>
                                     <th>Password</th>
-                                    <th>Profile Picture</th>
                                     <th>Role</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -185,134 +202,100 @@ export default function UserManagement(){
                             </thead>
                             <tbody>
                                 {Array.isArray(userdata)?
-                                    userdata.map((row)=>(
-                                        <tr key={row.id}>
-                                            <td></td>
-                                            <td>{row.id}</td>
-                                            <td>{row.username}</td>
-                                            <td>{row.email}</td>
-                                            <td>{row.password}</td>
-                                            <td>
-                                                <img src={row.image} title={row.image}></img>
-                                            </td>
-                                            <td>{row.role}</td>
-                                            <td>Active</td>
-                                            <td className="icon-grp">
-                                                <FontAwesomeIcon icon={faEye} className="table-icon" onClick={()=>{setIsShowModalOpen(true),setSelectedUser(row)}} ></FontAwesomeIcon>
-                                                <div className={isShowModalOpen?"modal":"hide"}>
-                                                    <div className="overlay"></div>
-                                                    <div className="modal-content">
+                                currentdata.length>0?currentdata.filter((row)=>{
+                                        return searchItem.toLowerCase()===''?row:String(row.username).toLowerCase().includes(searchItem)
+                                }).map((row)=>(
+                                    <tr key={row.id}>
+                                        <td>
+                                            {!selectedUsers[row.id]?<FontAwesomeIcon icon={faCircle} className="circle-icon" onClick={()=>{handleSelectedRows(row.id)}}></FontAwesomeIcon>:
+                                            <FontAwesomeIcon icon={faCheck} onClick={()=>{handleSelectedRows(row.id)}}></FontAwesomeIcon>}
+                                        </td>
+                                        <td>{row.id}</td>
+                                        <td id="username-col"><img src={row.image} title={row.image}></img>{row.username}</td>
+                                        <td>{row.email}</td>
+                                        <td>{row.password}</td>
+                                        <td>{row.role}</td>
+                                        <td>{row.status}</td>
+                                        <td className="icon-grp">
+                                            <FontAwesomeIcon icon={faEye} className="table-icon" onClick={()=>{setIsShowModalOpen(true),setSelectedUser(row)}} ></FontAwesomeIcon>
+                                            <div className={isShowModalOpen?"modal":"hide"}>
+                                                <div className="overlay"></div>
+                                                <div className="modal-content">
                                                     <div className="img-section">
                                                         <img src={selectedUser.image}/>
                                                     </div>
                                                     <div className="user-info">
-                                                    <h2>Edit Details</h2>
-                                            
-                                                <legend>User Details</legend>
-                                               
-                                                    <div className="field-value">
-                                                        <label className="field">Username</label>
-                                                        <p >{selectedUser.username}</p>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Email</label>
-                                                    <   p >{selectedUser.email}</p>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Role</label>
-                                                        <p>{selectedUser.role}</p>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value" >
-                                                        <label className="field">Password</label>
-                                                        <p >{selectedUser.password}</p>
-                                                    </div>
-                                                    <br/>
-                                                    
-                                                    
-                                                
-                                                <div className="btn-grp">
-                                                    <button icon={faClose} onClick={()=>setIsShowModalOpen(false)}>Back</button>
-                                                    <button onClick={handleSaveUser}>Save</button>
-                                                </div>
-                                        </div>
-                                                    </div>   
-                                                </div>
+                                                        <h2>Edit Details</h2>
+                                                        <legend>User Details</legend>
+                                                        <div className="field-value">
+                                                            <label className="field">Username</label>
+                                                            <p >{selectedUser.username}</p>
+                                                        </div>
+                                                        <br/>
+                                                        <div className="field-value">
+                                                            <label className="field">Email</label>
+                                                        <   p >{selectedUser.email}</p>
+                                                        </div>
+                                                        <br/>
+                                                        <div className="field-value">
+                                                            <label className="field">Role</label>
+                                                            <p>{selectedUser.role}</p>
+                                                        </div>
+                                                        <br/>
+                                                        <div className="field-value" >
+                                                            <label className="field">Password</label>
+                                                            <p >{selectedUser.password}</p>
+                                                        </div>
+                                                        <br/>
 
-                                                <FontAwesomeIcon icon={faEdit} className="table-icon" onClick={()=>{setIsEditModalOpen(true),setSelectedUser(row)}}></FontAwesomeIcon>
-                                                <div className={isEditModalOpen?"modal":"hide"}>
-                                    <div className="overlay"></div>
-                                    <div className="modal-content">
-                                        <div className="img-section">
-                                                <img src={selectedUser.image}/>
-                                                <input type="file" required onClick={imageUploader}></input>
-                                        </div>
-                                        <div className="user-info">
-                                            <h2>Edit User Details</h2>
-                                            <fieldset>
-                                                <legend>User Details</legend>
-                                                <form>
-                                                    <div className="field-value">
-                                                        <label className="field">Username</label>
-                                                        <input type="text" className="value" name="username"
-                                                         onChange={(e)=>handleChange(e)} value={selectedUser.username} required></input>
+                                                        <div className="btn-grp">
+                                                            <button icon={faClose} onClick={()=>setIsShowModalOpen(false)}>Back</button>
+                                                            <button onClick={handleSaveUser}>Save</button>
+                                                        </div>
+                                                   </div>
+                                                </div>   
+                                            </div>
+                                            <FontAwesomeIcon icon={faEdit} className="table-icon" onClick={()=>{setIsEditModalOpen(true),setSelectedUser(row)}}></FontAwesomeIcon>
+                                            <div className={isEditModalOpen?"modal":"hide"}>
+                                                <div className="overlay"></div>
+                                                <div className="modal-content">
+                                                    <div className="img-section">
+                                                            <img src={selectedUser.image}/>
+                                                            <input type="file" required  onChange={imageUploader}></input>
                                                     </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Email</label>
-                                                    <   input type="email" className="value" name="email" onChange={(e)=>handleChange(e)} value={selectedUser.email} required></input>
+                                                    <div className="user-info">
+                                                        <h2>Edit User Details</h2>
+                                                        <Form formData={formData} setFormData={setFormData} setConfPassword={setConfPassword}
+                                                         selectedUserName={selectedUser.username} selectedUserEmail={selectedUser.email} 
+                                                        selectedUserRole={selectedUser.role} selectedUserPassword={selectedUser.password} 
+                                                        />
+                                                        <div className="btn-grp">
+                                                            <button icon={faClose} onClick={()=>setIsEditModalOpen(false)}>Back</button>
+                                                            <button onClick={()=>handleUpdateUser(selectedUser.id)}>Save</button>
+                                                        </div>
                                                     </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Role</label>
-                                                        <select name="role" onChange={(e)=>handleChange(e)} value={selectedUser.role} >
-                                                            <option value="HR">HR</option>
-                                                            <option value="Employee">Employee</option>
-                                                            <option value="IT Assistant">IT Assistant</option>
-                                                        </select>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value" >
-                                                        <label className="field">Password</label>
-                                                        <input type="password" className="value" name="password" onChange={(e)=>handleChange(e)} required value={selectedUser.password} ></input>
-                                                    </div>
-                                                    <br/>
-                                                    <div className="field-value">
-                                                        <label className="field">Confirm Password</label>
-                                                        <input type="password" name="confPassword" className="value" onChange={(e)=>setConfPassword(e.target.value)} value={selectedUser.password}></input>
-                                                    </div>
-                                                    
-                                                </form>
-                                                <div className="btn-grp">
-                                                    <button icon={faClose} onClick={()=>setIsEditModalOpen(false)}>Back</button>
-                                                    <button onClick={handleSaveUser}>Save</button>
-                                                </div>
-                                            </fieldset>
-                                            
-                                        </div>
-                                        
-                                    </div>
-                                </div>
-                                                <FontAwesomeIcon icon={faTrash} className="table-icon" onClick={()=>setIsDeleteModalOpen(true)}></FontAwesomeIcon>
+                                               </div>
+                                           </div>
+                                            <FontAwesomeIcon icon={faTrash} className="table-icon" onClick={()=>{setIsDeleteModalOpen(true),setSelectedUser(row)}}></FontAwesomeIcon>
                                                 <div className={isDeleteModalOpen?"modal":"hide"}>
-                                                    <div className="overlay"></div>
+                                                <div className="overlay"></div>
                                                     <div className="modal-content">
                                                         <p>Delete User?</p>
                                                         <button onClick={()=>setIsDeleteModalOpen(false)}>Back</button>
-                                                        <button>Delete</button>
+                                                        <button onClick={()=>handleDeleteUser(selectedUser.id)}>Delete</button>
                                                     </div>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    )):<tr key={0}>
-                                        <td>None</td>
+                                        </td>
                                     </tr>
+                                )):<tr key={0}>
+                                    <td>None</td>
+                                    </tr>
+                                    : <tr><td colSpan="8">No users found</td></tr>
                                 }
                             </tbody>
                         </table>
                         
+                        <button onClick={() => reactToPrintFn()}>Print table</button>
                     </div>
                     <Footer/>
                 </main>

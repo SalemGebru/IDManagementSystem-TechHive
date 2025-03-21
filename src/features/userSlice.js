@@ -7,22 +7,23 @@ export const signin=createAsyncThunk(
     'user/signin',
     async(FormData,{rejectWithValue})=>{
         try{
-            const userData = JSON.parse(localStorage.getItem('user'));
+            let userData = JSON.parse(localStorage.getItem('userdata'));
 
             if (!userData) {
                 return rejectWithValue('No user found in localStorage');
             }
-            
-            if(FormData.email===userData.email){
-                if(FormData.password===userData.password){
+
+            const userFound=userData.find(user=>String(user.email).trim()===FormData.email);
+            if(userFound){
+                if(String(userFound.password).trim()===FormData.password){
                     alert('Login successful');
-                    return { email: userData.email, message: 'Login successful' };
+                    return { role: userFound.role, message: 'Login successful' };
                 }
                 else{
                     alert('Incorrect password');
                     return rejectWithValue('password mismatch');
                 }
-            }
+            }   
             else{
                 alert('Email not found');
                 return rejectWithValue('email not found');
@@ -47,7 +48,7 @@ export const getUser=createAsyncThunk(
                 return userData;
             }
         }catch(error){
-                return rejectWithValue(error);
+                return rejectWithValue(error.message);
         }
     }
 )
@@ -57,20 +58,24 @@ export const addUser = createAsyncThunk(
     async (FormData, {  rejectWithValue }) => {
         let userId;
         try {
-            console.log('Trying to add user...');
-            let storedUsers = JSON.parse(localStorage.getItem('userdata')) || [];
+            let storedUsers;
+            try {
+                storedUsers = JSON.parse(localStorage.getItem('userdata')) || [];
+            } catch (e) {
+                storedUsers = [];
+            }
+            
             if (!Array.isArray(storedUsers)) {
                 storedUsers = []; 
             }
+            console.log(storedUsers);
             if (storedUsers.length === 0) {
-                console.log('No user');
                 let lastUserId=0;
                 userId=lastUserId+1;
             } else {
                 const lastUser = storedUsers.pop();
                 if (lastUser && lastUser.id) {
                     let lastUserId = lastUser.id;
-                    console.log("Last user's id:", lastUserId);
                      lastUserId=parseInt(lastUserId,10);
                       userId=lastUserId+1;
                       
@@ -80,7 +85,6 @@ export const addUser = createAsyncThunk(
                 }
                 storedUsers.push(lastUser);
             }
-            console.log('User id',userId);
             const user = {
                 id: userId || "",
                 username: FormData?.username || "",
@@ -88,43 +92,102 @@ export const addUser = createAsyncThunk(
                 role: FormData?.role || "",
                 password: FormData?.password || "",
                 image: FormData?.image || "",
-            };
-
-            console.log("User to be added:", user);
-
-            
-            const isUserRegistered=storedUsers.some(storedUser => {
-                console.log(storedUser.email);
-                if(storedUser.email===user.email){
-                    alert('User is already registerd');
-                    return;
-                }
+                status:"Active"
+            };            
+            const isUserRegistered = storedUsers.some(storedUser => {
+                return storedUser.email.some(storedEmail => {                    
+                    if (storedEmail.toLowerCase().trim() === String(user.email).toLowerCase().trim()) {
+                        return true; 
+                    }
+                    return false;
+                });
             });
-            console.log(isUserRegistered)
 
             if(isUserRegistered){
-                alert('User is already registered');
+                alert('Email is already taken');
                 return;
             }
-
             storedUsers.push(user); 
-            console.log(storedUsers);
             localStorage.setItem('userdata', JSON.stringify(storedUsers)); 
-
-            console.log('User successfully added:', user);
+            alert('User successfully added:', user);
             return user;
         } catch (error) {
-            console.log(error);
-            return rejectWithValue(error);
+            return rejectWithValue(error.message);
         }
     }
 );
 
 export const updateUser = createAsyncThunk(
-    'user/add',
-    async (FormData, {  rejectWithValue }) => {
-        
-    });
+    'user/update',
+    async ({ Id, FormData }, { rejectWithValue }) => {
+        let storedUsers = JSON.parse(localStorage.getItem('userdata')) || [];
+        if (!Array.isArray(storedUsers)) {
+            storedUsers = []; 
+        }
+        try {
+            const userIndex = storedUsers.findIndex(storedUser => {
+                return String(storedUser.id).trim() === String(Id).trim();  
+            });
+            if (userIndex === -1) {
+                return rejectWithValue('User not found');
+            }
+            const updatedUser = {
+                ...storedUsers[userIndex], 
+                username: FormData?.username || storedUsers[userIndex].username,
+                email: FormData?.email || storedUsers[userIndex].email,
+                role: FormData?.role || storedUsers[userIndex].role,
+                password: FormData?.password || storedUsers[userIndex].password,
+                image: FormData?.image || storedUsers[userIndex].image,
+            };
+            
+            storedUsers[userIndex] = updatedUser;
+            localStorage.setItem('userdata', JSON.stringify(storedUsers));
+            alert('Update successful');
+
+            return updatedUser;
+        } catch (error) {
+            return rejectWithValue(error.message || 'Update failed');
+        }
+    }
+);
+
+export const deleteUser = createAsyncThunk(
+    'user/delete',
+    async (Id, { rejectWithValue }) => {
+        try {
+            let storedUsers = JSON.parse(localStorage.getItem('userdata')) || [];
+            storedUsers = storedUsers.filter(storedUser => { 
+                return storedUser.id !== Id.id; 
+            });
+
+            localStorage.setItem('userdata', JSON.stringify(storedUsers));
+            alert('Delete successful');
+            return storedUsers; 
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const deleteBunch=createAsyncThunk(
+    'user/deletebunch',
+    async(id,{rejectWithValue})=>{
+        try{
+            let storedUsers = JSON.parse(localStorage.getItem('userdata')) || [];
+            let userIdToRemove = Object.keys(id).map(Number);
+            storedUsers=storedUsers.filter(storedUser=>{
+                
+                return !userIdToRemove.includes(storedUser.id)
+            }
+ )
+            localStorage.setItem('userdata', JSON.stringify(storedUsers));
+            alert('Delete successful');
+            return storedUsers
+        }catch(error){
+            return rejectWithValue(error);
+        }
+    }
+)
 
 
 
@@ -137,21 +200,33 @@ const userSlice=createSlice({
         name:'',
         role:'',
         id:1,
+        status:'',
         users:[],
         logged:false
     },
     reducers:{},
     extraReducers:(builder)=>{
         builder
-        .addCase(signin.fulfilled,(state)=>{
+        .addCase(signin.fulfilled,(state,action)=>{
             state.logged=true;
+            state.role = action.payload.role;
         })
         .addCase(signin.rejected,(state)=>{
             state.logged=false;
         })
         .addCase(addUser.fulfilled,(state,action)=>{
             state.users=[...state.users,action.payload]
-            console.log(state.users);
+            
+        })
+        .addCase(updateUser.fulfilled,(state,action)=>{
+            state.users=[...state.users,action.payload]
+            
+        })
+        .addCase(deleteUser.fulfilled,(state,action)=>{
+            state.users=[...state.users,action.payload];
+        })
+        .addCase(deleteBunch.fulfilled,(state,action)=>{
+            state.users=[...state.users,action.payload];
         })
     }
 })
