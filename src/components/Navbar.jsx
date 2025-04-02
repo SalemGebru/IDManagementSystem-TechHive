@@ -32,7 +32,7 @@ export default function Navbar(){
     };
     
 
-    const name = useSelector((state) => state.profile.profile.name);
+    const name = useSelector((state) => state.profile.name);
 
 
     //language setting doesn't work

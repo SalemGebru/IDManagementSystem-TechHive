@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from "react-redux"
 
 import Navbar from "../components/Navbar"
 import Sidebar from "../components/Sidebar"
-import Header from "../components/header"
+import Header from "../components/Header"
 import Footer from "../components/Footer"
-import Form from "../components/Form"
+import Form from "../components/UserForm"
 
 import { addUser,getUser,updateUser,deleteUser,deleteBunch } from "../features/userSlice"
 
@@ -148,7 +148,7 @@ export default function UserManagement(){
                 <Sidebar/>
                 <main>
                     <Header/>
-                    <div className="user-management">
+                    <div className="management-table">
                         <div className="table-header">
                             <h1>Users Table</h1>
                             <button onClick={handleOpenModal}>

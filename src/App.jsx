@@ -5,6 +5,8 @@ import EmployeeDashboard from './pages/EmployeeDashboard'
 import Profile from './pages/profile'
 import Notices from './pages/Notices'
 import UserManagement from './pages/UserManagement'
+import EmployeeManagement from './pages/EmployeeManagement'
+import IdManagement from './pages/IdManagement'
 
 
 import './i18n';
@@ -30,6 +32,8 @@ function App() {
         <Route path="/employee/profile" element={<Profile/>}/>
         <Route path="/employee/notifications" element={<Notices/>}/>
         <Route path="/usermanagement" element={<UserManagement/>}/>
+        <Route path="/employeemanagement" element={<EmployeeManagement/>}/>
+        <Route path="/idmanagement" element={<IdManagement/>}/>
       </Routes>
     </>
   )

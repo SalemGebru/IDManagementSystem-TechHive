@@ -8,7 +8,7 @@ import { getUser } from "../features/userSlice"
 
 import Navbar from "../components/Navbar"
 import Sidebar from "../components/Sidebar"
-import Header from "../components/header"
+import Header from "../components/Header"
 import Footer from "../components/Footer"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"

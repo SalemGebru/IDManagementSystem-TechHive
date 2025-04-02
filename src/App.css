@@ -576,6 +576,7 @@ input[type="text"]:focus {
 .modal,.overlay{
   width:100vw;
   height: 100vh;
+  overflow: scroll;
   position: fixed;
   top:0;
   left: 0;
@@ -587,7 +588,7 @@ input[type="text"]:focus {
 }
 .modal-content{
   position: absolute;
-  top:40%;
+  top:65%;
   left: 50%;
   background-color: white;
   padding: 14px 28px;
@@ -596,6 +597,7 @@ input[type="text"]:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  overflow: scroll;
 }
 .img-section{
   display: flex;
@@ -678,8 +680,29 @@ tr{
   background-color: #458ec0;
   
  }
- 
-
+.select-pag{
+  width:20%
+}
+ .id-temp{
+  display: flex;
+ width:100%;
+ }
+ .id-temp .stage{
+width: 50%;
+background-color: #2a90d3;
+ }
+ .id-temp .settings{
+  border: 4px solid #ccc;
+  width: 50%;
+ }
+.position-controls{
+  display: flex;
+  flex-direction: column;
+}
+.templatesettings{
+  display: flex;
+  flex-direction: column;
+}
 .hide{
   display: none;
 }
@@ -830,4 +853,5 @@ tr{
   .page button {
     width: 80%; 
   }
+ 
 }

@@ -85,15 +85,6 @@ export const addUser = createAsyncThunk(
                 }
                 storedUsers.push(lastUser);
             }
-            const user = {
-                id: userId || "",
-                username: FormData?.username || "",
-                email: FormData?.email || "",
-                role: FormData?.role || "",
-                password: FormData?.password || "",
-                image: FormData?.image || "",
-                status:"Active"
-            };            
             const isUserRegistered = storedUsers.some(storedUser => {
                 return storedUser.email.some(storedEmail => {                    
                     if (storedEmail.toLowerCase().trim() === String(user.email).toLowerCase().trim()) {
@@ -107,6 +98,15 @@ export const addUser = createAsyncThunk(
                 alert('Email is already taken');
                 return;
             }
+            const user = {
+                id: userId || "",
+                username: FormData?.username || "",
+                email: FormData?.email || "",
+                role: FormData?.role || "",
+                password: FormData?.password || "",
+                image: FormData?.image || "",
+                status:"Active"
+            };            
             storedUsers.push(user); 
             localStorage.setItem('userdata', JSON.stringify(storedUsers)); 
             alert('User successfully added:', user);
@@ -189,6 +189,24 @@ export const deleteBunch=createAsyncThunk(
     }
 )
 
+export const getEmployee=createAsyncThunk(
+    'user/employee',
+    async(_,{rejectWithValue})=>{
+        try{
+            const storedUsers=JSON.parse(localStorage.getItem('userdata'));
+            const employee=storedUsers.filter(storedUser=>String(storedUser.role).toLowerCase()==='employee');
+            console.log('Emp',employee);
+            if(!employee){
+                console.log('error fetching employees');
+                return rejectWithValue('error fetching employees');
+            }
+            return employee;
+        }catch(error){
+                console.log(error);
+                return rejectWithValue(error);
+        }
+    }
+)
 
 
 const userSlice=createSlice({

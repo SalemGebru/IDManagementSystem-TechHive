@@ -21,14 +21,14 @@ export default function Signin(){
     useEffect(() => {
         if (logged && role) {  
             const lowerRole = String(role).toLowerCase();
-            console.log("User Role:", role);
+
 
             if (lowerRole === "employee") {
                 navigate("/employee/dashboard");
             } else if (lowerRole === "it assistant") {
                 navigate("/usermanagement");
             } else if (lowerRole === "hr") {
-                
+                navigate("/employeemanagement");
             }
         }
     }, [logged, role, navigate]); 
