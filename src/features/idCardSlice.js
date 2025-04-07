@@ -91,24 +91,26 @@ export const getTemplate = createAsyncThunk(
     'template/get',
     async (_, { rejectWithValue }) => {
       try {
-        // Get templates from localStorage
+        
+      
         const storedTemplates = localStorage.getItem('templates');
   
-        // If no templates exist, return an empty object
-        if (!storedTemplates) {
-          return {};  // Return empty object if no templates are found
-        }
+        
+        if (!storedTemplates || storedTemplates.length === 0) {
+            storedTemplates = {};
+            return JSON.parse(storedTemplates);
+          }
   
         const templates = JSON.parse(storedTemplates);
   
-        // Ensure the templates are in the correct format (object)
+      
         if (typeof templates !== 'object' || Array.isArray(templates)) {
           return rejectWithValue('Invalid template format in localStorage');
         }
   
-        return templates;  // Return the valid templates object
+        return templates;  
       } catch (error) {
-        // Return a string error message if parsing fails
+        
         return rejectWithValue(error.message || 'Failed to load templates');
       }
     }

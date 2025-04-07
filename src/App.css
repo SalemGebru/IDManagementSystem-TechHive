@@ -683,18 +683,37 @@ tr{
 .select-pag{
   width:20%
 }
- .id-temp{
+.id-temp{
+  width:100%;
+ }
+
+.id-temp .stage{
+  width: 50%;
+  margin: 100px auto;
+ 
+ }
+ .id-modal{
   display: flex;
- width:100%;
+  flex-direction: column;
+  width:50%;
+  height: 30vh;
  }
- .id-temp .stage{
-width: 50%;
-background-color: #2a90d3;
+ .id-modal .btn-grp button{
+  width:100%;
  }
- .id-temp .settings{
+ .template{
+  display: flex;
+  width:100%;
+ }
+ .template .stage{
+  width: 50%;
+  
+ }
+ .template .settings{
   border: 4px solid #ccc;
   width: 50%;
  }
+
 .position-controls{
   display: flex;
   flex-direction: column;

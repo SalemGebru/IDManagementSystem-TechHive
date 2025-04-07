@@ -5,20 +5,19 @@ import Footer from '../components/Footer'
 
 import { useState,useEffect } from 'react'
 import React from 'react'
+import jsPDF from 'jspdf'
 
-import { getProfile,generateId,getTemplate,saveTemplate} from '../features/idCardSlice'
+import { getProfile,generateId,getTemplate} from '../features/idCardSlice'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Stage,Layer,Text,Image,Group} from 'react-konva'
+import { Stage,Layer,Text,Image,Group,Image as KonvaImage} from 'react-konva'
 
 
 export default function IdManagement(){
     const dispatch=useDispatch()
     const { idCards } = useSelector((state) => state.idCard);
     const [image, setImage] = useState(null);
-    const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
-    const [isEditing,setIsEditing]=useState(false);
-    const [isUpdating,setIsUpdating]=useState(false);
+    const [isCreateModalOpen,setIsCreateModalOpen]=useState(false);
     const [userProfile,setUserProfile]=useState([]);
     const [extractData,setExtractData]=useState([]);
     const [id,setId]=useState();
@@ -31,7 +30,7 @@ export default function IdManagement(){
                 yPosition:80,
             },
             engName:{
-                xPosition:30,
+                xPosition:400,
                 yPosition:80,
                 fontSize:18,
                 fontColor:'black',
@@ -40,8 +39,8 @@ export default function IdManagement(){
                 fieldName:'name'
             },
             role:{
-                xPosition:30,
-                yPosition:90,
+                xPosition:400,
+                yPosition:100,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -49,8 +48,8 @@ export default function IdManagement(){
                 fieldName:'position'
             },
             issuedate:{
-                xPosition:30,
-                yPosition:100,
+                xPosition:400,
+                yPosition:120,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -58,8 +57,8 @@ export default function IdManagement(){
                 fieldName:'issuedate'
             },
             expiredate:{
-                xPosition:30,
-                yPosition:110,
+                xPosition:400,
+                yPosition:140,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -69,7 +68,7 @@ export default function IdManagement(){
         },
         back:{
             phone:{
-                xPosition:30,
+                xPosition:400,
                 yPosition:90,
                 fontSize:18,
                 fontColor:'black',
@@ -78,8 +77,8 @@ export default function IdManagement(){
                 fieldName:'phone'
             },
             address:{
-                xPosition:30,
-                yPosition:100,
+                xPosition:400,
+                yPosition:120,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -93,8 +92,8 @@ export default function IdManagement(){
                 yPosition:80,
             },
             engName:{
-                xPosition:30,
-                yPosition:80,
+                xPosition:400,
+                yPosition:90,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -102,8 +101,8 @@ export default function IdManagement(){
                 fieldName:'name'
             },
             role:{
-                xPosition:30,
-                yPosition:90,
+                xPosition:400,
+                yPosition:120,
                 fontSize:18,
                 fontColor:'black',
                 fontStyle:'arial',
@@ -160,9 +159,37 @@ export default function IdManagement(){
         dispatch(getTemplate()).then((data)=>{
             const dataitem=data.payload
             console.log(dataitem)
-            setTemplates(dataitem)
+            if(dataitem=='Assignment to constant variable.'){
+                
+                console.log(templates);
+            }
+            else{
+                setTemplates(dataitem);
+                console.log(templates)
+            }
+            
+            
         });
       }, []);
+
+    const handleDownload=()=>{
+        if(id){
+            dispatch(getProfile({Id:id})).then((data)=>{
+                const dataitem=data.payload;
+                console.log(dataitem);
+                if(dataitem){
+                    const idFile=dataitem;
+               const doc=new jsPDF();
+               if(idFile){
+                //to be handled
+
+               }
+               else{
+                doc.text('No template found',10,10);
+               }
+                }})}
+        
+    }
 
     const selectedTemplateFields = templates[selectedTemplate] || {};
 
@@ -172,52 +199,23 @@ export default function IdManagement(){
     }
 
     const handleCreateId=()=>{
+
         dispatch(generateId({Id:id,UserInfo:userProfile,FormData:extractData}));
+        handleDownload();
         
     }
 
-    const styles = {
-        front: { },
-        back: { },
-        badge: { },
-      };
+    const [backObj,setBackObj]=useState();
 
-    const handleTemplateChange = (e, fieldKey) => {
-        const { name, value } = e.target;
-        setTemplates(prevTemplates => {
-            const selectedTemplateCopy = { ...prevTemplates[selectedTemplate] };
-            if (selectedTemplateCopy[fieldKey]) {
-                selectedTemplateCopy[fieldKey] = { ...selectedTemplateCopy[fieldKey], [name]: value };
-            } else {
-                console.warn(`Field ${fieldKey} not found in template ${selectedTemplate}`);
-            }
-            return { ...prevTemplates, [selectedTemplate]: selectedTemplateCopy };
-        });
-    };
-
-    const handlePositionChange = (e) => {
-        const { name, value } = e.target;
-        setImagePosition((prevPosition) => ({
-            ...prevPosition,
-            [name]: parseInt(value, 10), 
-        }));
-        setTemplates((prevTemplates) => ({
-            ...prevTemplates,
-            [selectedTemplate]: {
-                ...prevTemplates[selectedTemplate],
-                imagePosition: {
-                    ...(prevTemplates[selectedTemplate]?.imagePosition || { x: 50, y: 50 }), 
-                    [name]: parseInt(value, 10),
-                },
-            },
-        }));
-        
-    };
-      
-   
-    const handleSaveTemplate=(templates)=>{
-        dispatch(saveTemplate({TemplateData:templates}));
-    }
+    useEffect(()=>{
+        const img=localStorage.getItem(`templateCards${selectedTemplate}`);
+        console.log(img);
+        const loading=new window.Image();
+        loading.src=img;
+        console.log(loading);
+        setBackObj(loading);
+    },[selectedTemplate])
+    
 
     return(
         <div className='page'>
@@ -231,10 +229,38 @@ export default function IdManagement(){
                                 <option value="back">Back</option>
                                 <option value="badge">Badge</option>
                         </select>
+                        <button onClick={()=>setIsCreateModalOpen(true)}>Generate ID</button>
+                        <div className={isCreateModalOpen?"modal":'hide'}>
+                            <div className="overlay"></div>
+                            <div className="modal-content id-modal">
+                            <div>
+                            <div className="field-value">
+                                <label className="field">Issue Date</label>
+                                <input className="value" type="date" name="issuedate" 
+                                onChange={(e)=>handleIdChange(e)}></input>
+                            </div>
+                            <div className="field-value">
+                                <label className="field">Expiry Date</label>
+                                <input className="value" type="date" name="expiredate"
+                                onChange={(e)=>handleIdChange(e)} ></input>
+                            </div>
+                           
+                        </div>
+                            <div className='btn-grp'>
+                                <button onClick={()=>setIsCreateModalOpen(false)}>Back</button>
+                                <button onClick={handleCreateId}>Create ID</button>
+                            </div>
+                            </div>
+                        </div>
                         <div className='id-temp'>
                         {selectedTemplateFields && Object.entries(selectedTemplateFields).length > 0 && (
                         <Stage className="stage" width={755} height={600}>
                             <Layer>
+                                <KonvaImage
+                                    width={755}
+                                    height={600}
+                                    image={backObj}
+                                />
                             {image && (
                                 <Image
                                 x={templates[selectedTemplate]?.imagePosition?.x || 50}  
@@ -279,101 +305,6 @@ export default function IdManagement(){
                             </Layer>
                         </Stage>
                         )}
-                        <div className='settings'>
-                            <div id='toggle'>
-                                <div onClick={()=>setIsEditing(true)} className={isEditing?'toggle-on':''}>Edit Template</div>
-                                <div onClick={()=>setIsEditing(false)} className={isEditing?'':'toggle-on'}>Preview </div>
-                            </div>
-                            {isEditing?
-                                (   <div>
-                                        <div className="template-edit">
-                                        <Group className="position-controls">
-                                            <Group>
-                                                <label>X Position Image:</label>
-                                                <input
-                                                    type="number"
-                                                    name="x"
-                                                    onChange={handlePositionChange} 
-                                                    disabled={!isUpdating}
-                                                    placeholder='x-axis'
-                                                />
-                                            </Group>
-                                            <Group>
-                                                <label>Y Position Image:</label>
-                                                <input
-                                                    type="number"
-                                                    name="y"
-                                                    onChange={handlePositionChange} 
-                                                    disabled={!isUpdating}
-                                                    placeholder='y-axis'
-                                                />
-                                            </Group>
-                                        </Group>
-                                    <div className="tempSettings">
-                                    {Object.entries(templates[selectedTemplate]).map(([key, field]) => (
-                                    <div key={key}>
-                                        <h3>{field.label}</h3>
-                                        <input
-                                            type="number"
-                                            name="xPosition"
-                                            placeholder='x position'
-                                            onChange={(e) => handleTemplateChange(e, key)}  // Passing `key` as the fieldKey
-                                            disabled={!isUpdating}
-                                        />
-                                        <input
-                                            type="number"
-                                            name="yPosition"
-                                            placeholder='y position'
-                                            onChange={(e) => handleTemplateChange(e, key)}
-                                            disabled={!isUpdating}
-                                        />
-                                        <input
-                                            type="number"
-                                            name="fontSize"
-                                            placeholder='font size'
-                                            onChange={(e) => handleTemplateChange(e, key)}
-                                            disabled={!isUpdating}
-                                        />
-                                        <input
-                                            type="color"
-                                            name="fontColor"
-                                        
-                                            onChange={(e) => handleTemplateChange(e, key)}
-                                            disabled={!isUpdating}
-                                        />
-                                        <select
-                                            name="fontStyle"
-                                            
-                                            onChange={(e) => handleTemplateChange(e, key)}
-                                            disabled={!isUpdating}
-                                        >
-                                            <option value="arial">Arial</option>
-                                            <option value="calibri">Calibri</option>
-                                            <option value="gothic">Gothic</option>
-                                        </select>
-                                    </div>
-                                ))}
-                            </div>      
-                        </div>
-                        <button onClick={isUpdating?()=>{setIsUpdating(false);handleSaveTemplate(templates)}:()=>setIsUpdating(true)}>{isUpdating?"Save":"Update"}</button>
-                            </div>  
-                    ):
-                    (
-                        <div>
-                            <div className="field-value">
-                                <label className="field">Issue Date</label>
-                                <input className="value" type="date" name="issuedate" 
-                                onChange={(e)=>handleIdChange(e)}></input>
-                            </div>
-                            <div className="field-value">
-                                <label className="field">Expiry Date</label>
-                                <input className="value" type="date" name="expiredate"
-                                onChange={(e)=>handleIdChange(e)} ></input>
-                            </div>
-                            <button onClick={handleCreateId}>Generate ID</button>
-                        </div>
-                    )}
-                            </div>
                         </div>
                     <Footer/>
                 </main>

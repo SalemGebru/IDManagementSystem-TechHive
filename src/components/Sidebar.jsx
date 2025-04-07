@@ -13,8 +13,10 @@ export default function Sidebar(){
     return(
         <aside className={isMenuOpen?"":"hide"}>
             <ul>
-                <li onClick={()=>navigate('/employee/dashboard')}>Dashboard</li>
-                
+                <li onClick={()=>navigate('/employee/dashboard')}>Employee Dashboard</li>
+                <li onClick={()=>navigate('/usermanagement')}>User Management</li>
+                <li onClick={()=>navigate('/employeemanagement')}>Employee Management</li>
+                <li onClick={()=>navigate('/templatesettings')}>Settings</li>
             </ul>
         </aside>
     )

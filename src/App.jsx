@@ -7,6 +7,7 @@ import Notices from './pages/Notices'
 import UserManagement from './pages/UserManagement'
 import EmployeeManagement from './pages/EmployeeManagement'
 import IdManagement from './pages/IdManagement'
+import TemplateSettings from './pages/TemplateSettings'
 
 
 import './i18n';
@@ -34,6 +35,7 @@ function App() {
         <Route path="/usermanagement" element={<UserManagement/>}/>
         <Route path="/employeemanagement" element={<EmployeeManagement/>}/>
         <Route path="/idmanagement" element={<IdManagement/>}/>
+        <Route path="/templatesettings" element={<TemplateSettings/>}/>
       </Routes>
     </>
   )
